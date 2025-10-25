@@ -28,19 +28,20 @@ def extract_right_data(features, labels, feature_index, threshold):
             right_labels.append(labels[i])
     return right_features, right_labels
 
-def build_cascade_tree(features, labels, depth=0):
+def build_cascade_tree(features, labels, depth=0, max_depth=20):
 
     total_samples = len(features)
 
     total, florin_count, guilder_count, majority_class, purity = node_analysis(labels)
 
     #Base Case: Stop when purity >= 0.95
-    if purity >= 0.95:
+    if purity >= 0.95 or depth >= max_depth:
 
         indent = "    " * depth
         return f'{indent}return "{majority_class}"  # Pure node: {purity:.1%} {majority_class}'
     
     best_feature, best_threshold, best_cost = find_best_split(features, labels)
+    
     feature_names = ["HemHt", "BowTieWd"]
 
     left_analysis, right_analysis = test_split(features, labels, best_feature, best_threshold)
@@ -84,8 +85,6 @@ def find_best_split(features, labels):
     best_threshold = -1
     total_samples = len(features)
 
-
-    
     for feature_idx in range(0 , 2): 
 
         feature_values = []
@@ -96,15 +95,12 @@ def find_best_split(features, labels):
 
         unique_values = sorted(set(feature_values))
 
-        for i in range(len(unique_values) - 1):
+        for i in range(0, len(unique_values) - 1):
 
             threshold = (list(unique_values)[i] + list(unique_values)[i + 1]) / 2
 
             left_analysis, right_analysis = test_split(features, labels, feature_idx, threshold)
 
-            if left_analysis[0] == 0 or right_analysis[0] == 0:
-                continue
-                
             cost = cost_function(left_analysis, right_analysis, total_samples)
 
             if cost > best_cost:
@@ -117,22 +113,12 @@ def find_best_split(features, labels):
 
 
 def cost_function(left_analysis, right_analysis, total_samples):
-
-    alpha = 0.2
-    left_cost = (left_analysis[0]/total_samples) + (alpha * left_analysis[4])
-    right_cost = (right_analysis[0]/total_samples) + (alpha * right_analysis[4])
-
-    if left_analysis[4] >= 0.8 and left_analysis[0] >= 10:
-        return left_cost
+    alpha = 1.0  # Try different values: 0.1, 0.5, 1.0, 2.0
     
-    elif right_analysis[4] >= 0.8 and right_analysis[0] >= 10:
-
-        return right_cost
+    left_score = (left_analysis[0] / total_samples) + (alpha * left_analysis[4])
+    right_score = (right_analysis[0] / total_samples) + (alpha * right_analysis[4])
     
-    else:
-        # If no good fast decision, use the better score
-        return max(left_cost, right_cost)
-
+    return max(left_score, right_score)
 
 def test_split(features, labels, feature_index, threshold):
     
@@ -213,15 +199,32 @@ def main():
     cascade_build = build_cascade_tree(features, labels)
 
     full_code = "def classify_spy(HemHt, BowTieWd):\n"
-    # Split the cascade code and indent each line
-    cascade_lines = cascade_build.split('\n')
-    for line in cascade_lines:
-        full_code += f"    {line}\n"  # ← This ensures everything inside the function is indented
-    
+    for line in cascade_build.splitlines():
+    # Each line from cascade_code already has the proper relative indent;
+    # we add exactly 4 spaces so it's all inside classify_spy(...)
+        full_code += f"    {line}\n"
 
     with open("cascade_classifier.py", "w") as f:
         f.write(full_code)
     
+
+    exec(full_code, globals())  # Make the classify_spy function available
+    
+    correct = 0
+    total = len(features)
+    
+    for i in range(total):
+        hemht = features[i][0]
+        bowtie = features[i][1]
+        true_label = labels[i]
+        predicted_label = classify_spy(hemht, bowtie)
+        
+        if predicted_label == true_label:
+            correct += 1
+    
+    accuracy = correct / total
+    print(f"Classifier Accuracy: {accuracy:.1%}")
+
 
  
     #print(cost_value)
