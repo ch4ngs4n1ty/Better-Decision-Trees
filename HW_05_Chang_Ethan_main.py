@@ -4,6 +4,93 @@
 
 import csv
 
+import matplotlib.pyplot as plt
+
+def plot_data_and_decisions(features, labels, cascade_code):
+    """
+    Plot the data points and decision boundaries from the cascade
+    """
+    # Create figure
+    plt.figure(figsize=(12, 8))
+    
+    # Separate features by class for plotting
+    florin_hem = []
+    florin_bow = []
+    guilder_hem = []
+    guilder_bow = []
+    
+    for i in range(len(features)):
+        if labels[i] == "Florin":
+            florin_hem.append(features[i][0])
+            florin_bow.append(features[i][1])
+        else:
+            guilder_hem.append(features[i][0])
+            guilder_bow.append(features[i][1])
+    
+    # Plot data points
+    plt.scatter(florin_hem, florin_bow, c='blue', label='Florin', alpha=0.7, s=50)
+    plt.scatter(guilder_hem, guilder_bow, c='red', label='Guilder', alpha=0.7, s=50)
+    
+    # Extract decision boundaries from cascade code
+    lines = cascade_code.split('\n')
+    decisions = []
+    
+    for line in lines:
+        if 'if' in line and '<' in line:
+            # Parse decision boundaries - handle colons and extra characters
+            if 'HemHt' in line:
+                parts = line.split('<')
+                # Clean up the threshold string - remove colon and any other non-numeric endings
+                threshold_str = parts[1].strip().split(':')[0].split()[0]  # Take only the number part
+                try:
+                    threshold = float(threshold_str)
+                    decisions.append(('HemHt', threshold))
+                except ValueError:
+                    continue  # Skip if we can't convert to float
+                    
+            elif 'BowTieWd' in line:
+                parts = line.split('<')
+                # Clean up the threshold string - remove colon and any other non-numeric endings
+                threshold_str = parts[1].strip().split(':')[0].split()[0]  # Take only the number part
+                try:
+                    threshold = float(threshold_str)
+                    decisions.append(('BowTieWd', threshold))
+                except ValueError:
+                    continue  # Skip if we can't convert to float
+    
+    print(f"Found {len(decisions)} decision boundaries")
+    
+    # Plot decision boundaries (just the first few to avoid clutter)
+    hem_limits = [min([f[0] for f in features]), max([f[0] for f in features])]
+    bow_limits = [min([f[1] for f in features]), max([f[1] for f in features])]
+    
+    # Plot first 5 vertical boundaries (HemHt decisions)
+    hem_decisions = [d for d in decisions if d[0] == 'HemHt'][:5]
+    for i, (feature, threshold) in enumerate(hem_decisions):
+        plt.axvline(x=threshold, color='green', linestyle='--', 
+                   alpha=0.7, label=f'HemHt < {threshold:.2f}' if i == 0 else "")
+        print(f"HemHt boundary at: {threshold}")
+    
+    # Plot first 5 horizontal boundaries (BowTieWd decisions)  
+    bow_decisions = [d for d in decisions if d[0] == 'BowTieWd'][:5]
+    for i, (feature, threshold) in enumerate(bow_decisions):
+        plt.axhline(y=threshold, color='purple', linestyle='--', 
+                   alpha=0.7, label=f'BowTieWd < {threshold:.2f}' if i == 0 else "")
+        print(f"BowTieWd boundary at: {threshold}")
+    
+    # Formatting
+    plt.xlabel('Hem Height (inches)')
+    plt.ylabel('Bow Tie Width (inches)')
+    plt.title('Spy Classification Data with Decision Boundaries\n(First 5 boundaries of each type shown)')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    # Save the plot
+    plt.savefig('decision_boundaries.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+    print("Plot saved as 'decision_boundaries.png'")
+    
 def extract_left_data(features, labels, feature_index, threshold):
     """Extract data where feature < threshold"""
     left_features = []
@@ -207,6 +294,8 @@ def main():
     with open("cascade_classifier.py", "w") as f:
         f.write(full_code)
     
+    plot_data_and_decisions(features, labels, cascade_build)
+
 
     exec(full_code, globals())  # Make the classify_spy function available
     
