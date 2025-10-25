@@ -26,7 +26,7 @@ def plot_data_and_decisions(features, labels, cascade_code):
         else:
             guilder_hem.append(features[i][0])
             guilder_bow.append(features[i][1])
-    
+
     # Plot data points
     plt.scatter(florin_hem, florin_bow, c='blue', label='Florin', alpha=0.7, s=50)
     plt.scatter(guilder_hem, guilder_bow, c='red', label='Guilder', alpha=0.7, s=50)
@@ -74,7 +74,7 @@ def plot_data_and_decisions(features, labels, cascade_code):
     # Plot first 5 horizontal boundaries (BowTieWd decisions)  
     bow_decisions = [d for d in decisions if d[0] == 'BowTieWd'][:5]
     for i, (feature, threshold) in enumerate(bow_decisions):
-        plt.axhline(y=threshold, color='purple', linestyle='--', 
+        plt.axhline(y=threshold, color='orange', linestyle='--', 
                    alpha=0.7, label=f'BowTieWd < {threshold:.2f}' if i == 0 else "")
         print(f"BowTieWd boundary at: {threshold}")
     
@@ -87,7 +87,8 @@ def plot_data_and_decisions(features, labels, cascade_code):
     
     # Save the plot
     plt.savefig('decision_boundaries.png', dpi=300, bbox_inches='tight')
-    plt.show()
+
+    plt.close()
 
     print("Plot saved as 'decision_boundaries.png'")
     
@@ -115,14 +116,14 @@ def extract_right_data(features, labels, feature_index, threshold):
             right_labels.append(labels[i])
     return right_features, right_labels
 
-def build_cascade_tree(features, labels, depth=0, max_depth=20):
+def build_cascade_tree(features, labels, depth=0):
 
     total_samples = len(features)
 
     total, florin_count, guilder_count, majority_class, purity = node_analysis(labels)
 
     #Base Case: Stop when purity >= 0.95
-    if purity >= 0.95 or depth >= max_depth:
+    if purity >= 0.95:
 
         indent = "    " * depth
         return f'{indent}return "{majority_class}"  # Pure node: {purity:.1%} {majority_class}'
