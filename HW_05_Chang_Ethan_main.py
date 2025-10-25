@@ -113,7 +113,7 @@ def find_best_split(features, labels):
 
 
 def cost_function(left_analysis, right_analysis, total_samples):
-    alpha = 1.0  # Try different values: 0.1, 0.5, 1.0, 2.0
+    alpha = 2.17  # Try different values: 0.1, 0.5, 1.0, 2.0
     
     left_score = (left_analysis[0] / total_samples) + (alpha * left_analysis[4])
     right_score = (right_analysis[0] / total_samples) + (alpha * right_analysis[4])
