@@ -117,7 +117,13 @@ def extract_right_data(features, labels, feature_index, threshold):
 
 """
 Builds the cascade decision tree recursively to construct
-the classifier function code. 
+the classifier function code. Represents the skeleton
+of the decision tree with fast decisions and remaining
+data for further splitting.
+@params features: list of feature data of hem height and bow tie width
+@params labels: list of country labels from data set
+@params depth: current depth of recursion for indentation
+@return code: string representation of the cascade decision tree
 """
 def build_cascade_tree(features, labels, depth=0):
 
@@ -125,12 +131,13 @@ def build_cascade_tree(features, labels, depth=0):
     # guilder count, majority class and purity.
     total_samples, florin_count, guilder_count, majority_class, purity = node_analysis(labels)
 
-    #Base Case: Stop when purity >= 0.95
+    #Base Case: When purity reaches to 95% or higher, return pure node decision
     if purity >= 0.95:
 
-        indent = "    " * depth
+        indent = "    " * depth # Indentation based on depth
         return f'{indent}return "{majority_class}"  # Pure node: {purity:.1%} {majority_class}'
     
+    # Recursive Case: Find best feature and threshold to split data
     best_feature, best_threshold, best_cost = find_best_split(features, labels)
     
     feature_names = ["HemHt", "BowTieWd"]
@@ -168,40 +175,58 @@ def build_cascade_tree(features, labels, depth=0):
     
     return code
 
-
+"""
+The data gets splitted based on feature index and threshold.
+Function is used to find the best index of the threshold.
+@params features: list of feature data of hem height and bow tie width
+@params labels: list of country labels from data set
+@returns: Tuple of (best_feature_index, best_threshold, best_cost)
+"""
 def find_best_split(features, labels):
 
-    best_cost = -float('inf')
-    best_feature_index = -1
-    best_threshold = -1
-    total_samples = len(features)
+    # Used to initlized variables to keep track of best split
+    best_cost = -float('inf') # Initialize to negative infinity
+    best_feature_index = -1 # Initialize to invalid index to find real split
+    best_threshold = -1 # Initialize to invalid threshold to find real split
+    total_samples = len(features) # Total number of samples
 
-    for feature_idx in range(0 , 2): 
+    # Iterate over each feature index (0: HemHt, 1: BowTieWd)
+    for feature_idx in range(0,2): 
 
+        # List of all values for current feature in all data samples
         feature_values = []
 
+        # Iterates through all samples to get feature values
         for j in range(len(features)):
             
+            # Append feature value at current index
             feature_values.append(features[j][feature_idx])
 
+        # Get unique sorted feature values to get threshold
+        # Set used to make values unique
         unique_values = sorted(set(feature_values))
 
+        # Each thresholds will be tested 
         for i in range(0, len(unique_values) - 1):
-
+            
+            # Threshold is being calculated as the average of two consecutive unique values
             threshold = (list(unique_values)[i] + list(unique_values)[i + 1]) / 2
 
+            # Data is being splitted into left and right nodes coming from current threshold
             left_analysis, right_analysis = test_split(features, labels, feature_idx, threshold)
 
+            # Cost function is being calculated based on left and right node analysis          
             cost = cost_function(left_analysis, right_analysis, total_samples)
 
+            # Once the cost is greater than best cost, then the value will get updated
             if cost > best_cost:
 
-                best_cost = cost
-                best_feature_index = feature_idx
-                best_threshold = threshold
+                best_cost = cost # Best cost updated
+                best_feature_index = feature_idx # Best feature updated (HemHt(0) or BowTieWd(1))
+                best_threshold = threshold # Best threshold updated
 
+    # Return parameters of best split found
     return best_feature_index, best_threshold, best_cost
-
 
 def cost_function(left_analysis, right_analysis, total_samples):
     alpha = 2.17  # Try different values: 0.1, 0.5, 1.0, 2.0
@@ -236,6 +261,12 @@ def test_split(features, labels, feature_index, threshold):
 Computes statistics of the data set coming from
 csv file. Used labels to get total count of samples, count of florinians,
 count of guilderians, majority class and purity of the node.
+@params labels: list of country labels from data set
+@return total_count: total number of samples in the data set
+@return florinian_count: number of florinians in the data set
+@return guilderian_count: number of guilderians in the data set
+@return majority_class: majority class label ("Florin" or "Guilder")
+@return purity: proportion of majority class in the data set
 """
 def node_analysis(labels):
 
