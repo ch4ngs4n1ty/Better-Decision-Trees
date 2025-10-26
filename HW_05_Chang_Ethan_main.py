@@ -228,32 +228,58 @@ def find_best_split(features, labels):
     # Return parameters of best split found
     return best_feature_index, best_threshold, best_cost
 
+"""
+Function calculates the cost of a split based on left and right node analysis.
+@params left_analysis: analysis of left node after split
+@params right_analysis: analysis of right node after split
+@params total_samples: total number of samples before split
+@return cost: calcualted cost of split (higher is better)
+"""
 def cost_function(left_analysis, right_analysis, total_samples):
-    alpha = 2.17  # Try different values: 0.1, 0.5, 1.0, 2.0
+
+    # After testing alpha values from 0...3, 2.17 provides best accuracy
+    alpha = 2.17  
     
+    # Calculate scores for left and right nodes
     left_score = (left_analysis[0] / total_samples) + (alpha * left_analysis[4])
     right_score = (right_analysis[0] / total_samples) + (alpha * right_analysis[4])
     
     return max(left_score, right_score)
 
+"""
+Splits the data based on feature index and threshold.
+@params features: list of feature data of hem height and bow tie width
+@params labels: list of country labels from data set
+@params feature_index: index of feature to split on (0: HemHt, 1: BowTieWd)
+@params threshold: threshold value to split on
+@return left_analysis: analysis of left node after split
+@return right_analysis: analysis of right node after split
+"""
 def test_split(features, labels, feature_index, threshold):
     
-    left_labels = []
-    right_labels = []
+    # Initialize lists for left and right node labels
+    left_labels = [] # Left labels where feature < threshold
+    right_labels = [] # Right labels where feature >= threshold
 
+    # Iterate through all samples to split based on threshold
     for i in range(len(features)):
 
+        # If feature value is less than threshold, goes to left node
         if features[i][feature_index] < threshold:
 
             left_labels.append(labels[i])
 
         else:
 
+            # Else goes to right node
             right_labels.append(labels[i])
 
+    # Get analysis for left and right nodes
+    # Reminder: node_analysis returns total_count, florinian_count, guilderian_count, majority_class, purity
     left_analysis = node_analysis(left_labels)
     right_analysis = node_analysis(right_labels)
 
+    # Return left and right analysis
     return left_analysis, right_analysis
 
 
