@@ -3,7 +3,6 @@
 # 
 
 import csv
-
 import matplotlib.pyplot as plt
 
 def plot_data_and_decisions(features, labels, cascade_code):
@@ -116,11 +115,15 @@ def extract_right_data(features, labels, feature_index, threshold):
             right_labels.append(labels[i])
     return right_features, right_labels
 
+"""
+Builds the cascade decision tree recursively to construct
+the classifier function code. 
+"""
 def build_cascade_tree(features, labels, depth=0):
 
-    total_samples = len(features)
-
-    total, florin_count, guilder_count, majority_class, purity = node_analysis(labels)
+    # Initialize node analysis to get number of total samples, florin count,
+    # guilder count, majority class and purity.
+    total_samples, florin_count, guilder_count, majority_class, purity = node_analysis(labels)
 
     #Base Case: Stop when purity >= 0.95
     if purity >= 0.95:
@@ -230,21 +233,27 @@ def test_split(features, labels, feature_index, threshold):
 
 
 """
+Computes statistics of the data set coming from
+csv file. Used labels to get total count of samples, count of florinians,
+count of guilderians, majority class and purity of the node.
 """
 def node_analysis(labels):
 
+    # Total sample of the data set
     total_count = len(labels)
 
-    if total_count == 0:
-        return 0, 0, 0, "Unknown", 0.0 
-    
+    # Count of florinians and guilderians
     florinian_count = labels.count("Florin")
     guilderian_count = labels.count("Guilder")
+
+    # Determine majority class by seeing in the data set if there's more florinians or guilderians
     majority_class = "Florin" if florinian_count >= guilderian_count else "Guilder"
+
+    # Calculate purity as the proportion of the majority class
     purity = max(florinian_count, guilderian_count) / total_count
 
+    # All computed values returned
     return total_count, florinian_count, guilderian_count, majority_class, purity
-
 
 """
 The main function serves as the entry point for the program.
