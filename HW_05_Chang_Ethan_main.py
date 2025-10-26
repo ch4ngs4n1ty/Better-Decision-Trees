@@ -1,4 +1,4 @@
-# HW 5:
+# CSCI 420 HW 5: Decision Cascade Classifier (Florin vs Guilder)
 # Ethan Chang
 # 
 
@@ -245,6 +245,13 @@ def node_analysis(labels):
 
     return total_count, florinian_count, guilderian_count, majority_class, purity
 
+
+"""
+The main function serves as the entry point for the program.
+Loads florinian vs guilderian spy data set from a CSV file, 
+processes it to extract features and labels and then constructs
+it into cascade decision tree classifier.
+"""
 def main():
     """
     Load Florinian vs Guilderian data from CSV file
@@ -260,34 +267,25 @@ def main():
     # data[0] = HemHt
     # data[1] = BowTieWd
     # data[2] = Country
-
     features = [] #List of feature data of hem height and bow tie width
     labels = [] #List of country labels
  
+    # Iterates each row coming from the data that's being pulled from csv file
     for row in data:
 
-        hem_ht = float(row[0])
-        bow_tie_wd = float(row[1])
-        country = row[2]
+        hem_ht = float(row[0]) # Each row hem height data (float value)
+        bow_tie_wd = float(row[1]) # Each row bow tie width data (float value)
+        country = row[2] # Each row country (label) data
 
-        features.append([hem_ht, bow_tie_wd])
-        labels.append(country)
+        features.append([hem_ht, bow_tie_wd]) # Append hem height and bow tie width to features list as tuple
+        labels.append(country) # Append country to labels list
 
-
-    #rint(features)
-
-    collected_data = node_analysis(labels)
-    splitted_data = test_split(features, labels, 0, 5.0)
-    cost_value = cost_function(splitted_data[0], splitted_data[1], collected_data[0])
-    best_split = find_best_split(features, labels)
-    #print(best_split)
-
-    left_analysis, right_analysis = test_split(features, labels, 1, 4.145)
-
-    cascade_build = build_cascade_tree(features, labels)
+    # Starts the cascade decision tree building process
+    cascade_build = build_cascade_tree(features, labels) #Parameters used are features and labels lists
 
     full_code = "def classify_spy(HemHt, BowTieWd):\n"
     for line in cascade_build.splitlines():
+
     # Each line from cascade_code already has the proper relative indent;
     # we add exactly 4 spaces so it's all inside classify_spy(...)
         full_code += f"    {line}\n"
