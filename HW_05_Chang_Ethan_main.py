@@ -1,9 +1,9 @@
 # CSCI 420 HW 5: Decision Cascade Classifier (Florin vs Guilder)
 # Ethan Chang
-# 
+# To compile: python HW_05_Chang_Ethan_main.py
 
-import csv
-import matplotlib.pyplot as plt
+import csv # To split csv files
+import matplotlib.pyplot as plt # To generate the plot
 
 """
 Helper function to plot data points of the cascade classifer.
@@ -278,7 +278,7 @@ def build_cascade_tree(features, labels, depth=0):
     if purity >= 0.95:
 
         indent = "    " * depth # Indentation based on depth
-        return f'{indent}return "{majority_class}"  # Pure node: {purity:.1%} {majority_class}'
+        return f'{indent}return "{majority_class}" '
     
     # Recursive Case: Find best feature and threshold 
     # Reminder: find_best_split returns (best_feature_idx_index, best_threshold, best_cost)
@@ -516,6 +516,8 @@ def main():
     3. Print the number of data points loaded
     """
     with open ("Florinian_vs_Guilderian_Data_v24.csv", "r") as file:
+    #with open ("Test_Data_v24.csv", "r") as file:
+
         reader = csv.reader(file)
         header = next(reader)  # Skip header
         data = [row for row in reader]

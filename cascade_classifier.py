@@ -34,7 +34,7 @@ def classify(HemHt, BowTieWd):
                                                             if BowTieWd < 4.360:
                                                                 return "Guilder"
                                                             else:
-                                                                return "Florin"  # Pure node: 100.0% Florin
+                                                                return "Florin" 
                                                     else:
                                                         return "Guilder"
                                     else:
