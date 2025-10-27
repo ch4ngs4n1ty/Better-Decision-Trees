@@ -36,12 +36,12 @@ def classify_spy(HemHt, BowTieWd):
                                                             else:
                                                                 return "Florin"  # Pure node: 100.0% Florin
                                                     else:
-                                                        return "Guilder"  # Fast decision
+                                                        return "Guilder"
                                     else:
-                                        return "Florin"  # Fast decision
+                                        return "Florin"
                                 else:
-                                    return "Florin"  # Fast decision
+                                    return "Florin"
                         else:
-                            return "Florin"  # Fast decision
+                            return "Florin"
                 else:
-                    return "Florin"  # Fast decision
+                    return "Florin"

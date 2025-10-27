@@ -5,33 +5,60 @@
 import csv
 import matplotlib.pyplot as plt
 
-def plot_data_and_decisions(features, labels, cascade_cascade_code):
+"""
+Helper function to plot data points of the cascade classifer.
+Helpful to analyze decision boundaries visually.
+
+@params features: list of feature data of hem height and bow tie width
+@params labels: list of country labels from data set
+@params cascade_code: string representation of the cascade decision tree
+"""
+def cascade_code_plot(features, labels, cascade_code):
     """
     Plot the data points and decision boundaries from the cascade
     """
-    # Create figure
+    # Create figure and axis.
+    # 12, 8 is decent size for plot.
     plt.figure(figsize=(12, 8))
     
     # Separate features by class for plotting
-    florin_hem = []
-    florin_bow = []
-    guilder_hem = []
-    guilder_bow = []
+    # Reminder: For each label it consists of features [HemHt, BowTieWd]
+    florin_hem = [] # HemHt for Florin
+    florin_bow = [] # BowTieWd for Florin
+    guilder_hem = [] # HemHt for Guilder
+    guilder_bow = [] # BowTieWd for Guilder
     
+    # Iterate through all features and labels to separate data points
     for i in range(len(features)):
-        if labels[i] == "Florin":
-            florin_hem.append(features[i][0])
-            florin_bow.append(features[i][1])
-        else:
-            guilder_hem.append(features[i][0])
-            guilder_bow.append(features[i][1])
 
-    # Plot data points
-    plt.scatter(florin_hem, florin_bow, c='blue', label='Florin', alpha=0.7, s=50)
-    plt.scatter(guilder_hem, guilder_bow, c='red', label='Guilder', alpha=0.7, s=50)
+        if labels[i] == "Florin":
+
+            # Features [0] = HemHt, Features [1] = BowTieWd
+            # Provided variable names for readability
+            fl_hem = features[i][0]
+            fl_bow = features[i][1] 
+
+            florin_hem.append(fl_hem) # HemHt for Florin [0]
+            florin_bow.append(fl_bow) # BowTieWd for Florin [1]
+
+        else:
+            
+            # Features [0] = HemHt, Features [1] = BowTieWd
+            
+            # Provided variable names for readability
+            gu_hem = features[i][0]
+            gu_bow = features[i][1]
+
+            guilder_hem.append(gu_hem) # HemHt for Guilder [0]
+
+            guilder_bow.append(gu_bow) # BowTieWd for Guilder [1]
+
+    # Plot data points with black and yellow colors
+    plt.scatter(florin_hem, florin_bow, c='black', label='Florin', alpha=0.7, s=50)
+    plt.scatter(guilder_hem, guilder_bow, c='yellow', label='Guilder', alpha=0.7, s=50)
     
-    # Extract decision boundaries from cascade cascade_code
-    lines = cascade_cascade_code.split('\n')
+    # Extract decision boundaries from cascade code
+    lines = cascade_code.split('\n')
     decisions = []
     
     for line in lines:
@@ -59,30 +86,57 @@ def plot_data_and_decisions(features, labels, cascade_cascade_code):
     
     print(f"Found {len(decisions)} decision boundaries")
     
-    # Plot decision boundaries (just the first few to avoid clutter)
-    hem_limits = [min([f[0] for f in features]), max([f[0] for f in features])]
-    bow_limits = [min([f[1] for f in features]), max([f[1] for f in features])]
+    # Get the actual data ranges for proper line placement
+    all_hem = [f[0] for f in features]
+    all_bow = [f[1] for f in features]
+    data_y_min = min(all_bow)
+    data_y_max = max(all_bow)
+    data_x_min = min(all_hem)
+    data_x_max = max(all_hem)
     
-    # Plot first 5 vertical boundaries (HemHt decisions)
-    hem_decisions = [d for d in decisions if d[0] == 'HemHt'][:5]
-    for i, (feature, threshold) in enumerate(hem_decisions):
-        plt.axvline(x=threshold, color='green', linestyle='--', 
-                   alpha=0.7, label=f'HemHt < {threshold:.2f}' if i == 0 else "")
-        print(f"HemHt boundary at: {threshold}")
+    # Add some padding to the data ranges
+    y_padding = (data_y_max - data_y_min) * 0.1
+    x_padding = (data_x_max - data_x_min) * 0.1
+    y_min = data_y_min - y_padding
+    y_max = data_y_max + y_padding
+    x_min = data_x_min - x_padding
+    x_max = data_x_max + x_padding
     
-    # Plot first 5 horizontal boundaries (BowTieWd decisions)  
-    bow_decisions = [d for d in decisions if d[0] == 'BowTieWd'][:5]
-    for i, (feature, threshold) in enumerate(bow_decisions):
-        plt.axhline(y=threshold, color='orange', linestyle='--', 
-                   alpha=0.7, label=f'BowTieWd < {threshold:.2f}' if i == 0 else "")
-        print(f"BowTieWd boundary at: {threshold}")
+    # Set the axis limits
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    
+    # Plot only the FIRST decision boundary of each type
+    hem_decisions = [d for d in decisions if d[0] == 'HemHt']
+    bow_decisions = [d for d in decisions if d[0] == 'BowTieWd']
+    
+    if hem_decisions and bow_decisions:
+        hem_threshold = hem_decisions[0][1]  # First HemHt boundary
+        bow_threshold = bow_decisions[0][1]  # First BowTieWd boundary
+        
+        # Plot BowTieWd boundary (red horizontal line) - full width
+        plt.axhline(y=bow_threshold, color='red', linestyle='--', 
+                   alpha=0.8, label=f'BowTieWd < {bow_threshold:.2f}', linewidth=3)
+        
+        # Plot HemHt boundary (blue vertical line) - from bottom to red line
+        # Use the actual bottom of the plot (y_min) to ensure it touches the x-axis
+        plt.plot([hem_threshold, hem_threshold], [y_min, bow_threshold], 
+                color='blue', linestyle='--', alpha=0.8, 
+                label=f'HemHt < {hem_threshold:.2f}', linewidth=3)
+        
+        print(f"First HemHt boundary at: {hem_threshold}")
+        print(f"First BowTieWd boundary at: {bow_threshold}")
+        print(f"Blue line goes from y={y_min:.2f} to y={bow_threshold:.2f}")
     
     # Formatting
     plt.xlabel('Hem Height (inches)')
     plt.ylabel('Bow Tie Width (inches)')
-    plt.title('Spy Classification Data with Decision Boundaries\n(First 5 boundaries of each type shown)')
+    plt.title('Spy Classification Data with First Decision Boundaries\n(Black: Florin, Yellow: Guilder)')
     plt.legend()
     plt.grid(True, alpha=0.3)
+    
+    # Set background to light gray for better contrast with yellow points
+    plt.gca().set_facecolor('#f0f0f0')
     
     # Save the plot
     plt.savefig('decision_boundaries.png', dpi=300, bbox_inches='tight')
@@ -90,7 +144,7 @@ def plot_data_and_decisions(features, labels, cascade_cascade_code):
     plt.close()
 
     print("Plot saved as 'decision_boundaries.png'")
-    
+
 """
 Extracts the data points focusing on feature < threshold.
 Function is used to get subset of left child node data
@@ -450,7 +504,7 @@ def main():
     with open("cascade_classifier.py", "w") as f:
         f.write(full_cascade_code)
     
-    plot_data_and_decisions(features, labels, cascade_build)
+    cascade_code_plot(features, labels, cascade_build)
 
 
     exec(full_cascade_code, globals())  # Make the classify_spy function available
