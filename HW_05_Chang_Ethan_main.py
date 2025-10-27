@@ -1,7 +1,9 @@
 # CSCI 420 HW 5: Decision Cascade Classifier (Florin vs Guilder)
 # Ethan Chang
-# To compile: python HW_05_Chang_Ethan_main.py
+# To compile: python HW_05_Chang_Ethan_main.py <Filename>
+# If no input of filename, the default file is Florinian_vs_Guilderian_Data_v24.csv
 
+import sys # To collect command arguments
 import csv # To split csv files
 import matplotlib.pyplot as plt # To generate the plot
 
@@ -187,8 +189,6 @@ def cascade_code_plot(features, labels, cascade_code):
     plt.savefig('cascade_plot.png', dpi=300, bbox_inches='tight')
 
     plt.close()
-
-    print("Plot saved as 'decision_boundaries.png'")
 
 """
 Extracts the data points focusing on feature < threshold.
@@ -515,7 +515,16 @@ def main():
     2. Parse the data into features and labels
     3. Print the number of data points loaded
     """
-    with open ("Florinian_vs_Guilderian_Data_v24.csv", "r") as file:
+    
+    #Default filename
+    output_filename = "Florinian_vs_Guilderian_Data_v24.csv"
+
+    # If user inputs filename, it becomes the output filename
+    if len(sys.argv) > 1:
+
+        output_filename = sys.argv[1]
+
+    with open (output_filename, "r") as file:
     #with open ("Test_Data_v24.csv", "r") as file:
 
         reader = csv.reader(file)
@@ -582,14 +591,6 @@ def main():
     accuracy = correct / total 
 
     print(f"Classifier Accuracy: {accuracy:.1%}")
-
-
- 
-    #print(cost_value)
-    #print(splitted_data)
-    #print(best_split)
-
-    #print(len(features))
 
 if __name__ == "__main__":
     main()
