@@ -50,53 +50,91 @@ def cascade_code_plot(features, labels, cascade_code):
             gu_bow = features[i][1]
 
             guilder_hem.append(gu_hem) # HemHt for Guilder [0]
-
             guilder_bow.append(gu_bow) # BowTieWd for Guilder [1]
 
-    # Plot data points with black and yellow colors
+    # Florin data points as black circles
+    # Note that alpha is transparency of each data point, s is size of each data point
     plt.scatter(florin_hem, florin_bow, c='black', label='Florin', alpha=0.7, s=50)
+
+    # Guilder data points as yellow circles
     plt.scatter(guilder_hem, guilder_bow, c='yellow', label='Guilder', alpha=0.7, s=50)
     
     # Extract decision boundaries from cascade code
-    lines = cascade_code.split('\n')
-    decisions = []
+    lines = cascade_code.split('\n') # Split the cascade code into each lines as extraction
+    decisions = [] # List extracted decisions
     
+    # Iterate through each line to find decision boundaries
     for line in lines:
-        if 'if' in line and '<' in line:
-            # Parse decision boundaries - handle colons and extra characters
-            if 'HemHt' in line:
-                parts = line.split('<')
-                # Clean up the threshold string - remove colon and any other non-numeric endings
-                threshold_str = parts[1].strip().split(':')[0].split()[0]  # Take only the number part
+
+        if 'if' in line and '<' in line: # Note that decision lines contains 'if' and '<'
+
+            if 'HemHt' in line: # If HemHw is in line
+                
+                # Example:  if HemHt < 12.075:
+                parts = line.split('<') # Split line at '<' to extract threshold
+
+                # If split then ["if HemHt ", " 12.075:"]
+
+                # Threshold string: 
+                # parts[1] = " 12.075:"
+                # parts[1].split(':')[0] = " 12.075"
+                # .strip() removes whitespace
+                threshold_str = parts[1].split(':')[0].strip() # Take only the number part
+            
                 try:
+                    # So threshold would be 12.075 as float.
                     threshold = float(threshold_str)
+
+                    #Then the threshold will be appended as tuple to decisions list
                     decisions.append(('HemHt', threshold))
+
                 except ValueError:
-                    continue  # Skip if we can't convert to float
+
+                    continue  # Skip if can't convert to float
                     
             elif 'BowTieWd' in line:
+                
+                # Example:  if BowTieWd < 8.895:
                 parts = line.split('<')
-                # Clean up the threshold string - remove colon and any other non-numeric endings
-                threshold_str = parts[1].strip().split(':')[0].split()[0]  # Take only the number part
+
+                # If split then ["if HemHt ", " 12.075:"]
+
+                # Threshold string: 
+                # parts[1] = " 8.895:"
+                # parts[1].split(':')[0] = " 8.895"
+                # .strip() removes whitespace
+                threshold_str = parts[1].split(':')[0].strip() 
+
                 try:
-                    threshold = float(threshold_str)
+                    
+                    # So threshold would be 8.895 as float.
+                    threshold = float(threshold_str) 
+
+                    # Then the threshold will be appended as tuple to decisions list
                     decisions.append(('BowTieWd', threshold))
+
                 except ValueError:
-                    continue  # Skip if we can't convert to float
+
+                    continue  # Skip if can't convert to float
+        
+    # Get data ranges for setting axis limits
+    # Recal that features [0] = HemHt, features [1] = BowTieWd
+
+    all_hem = [f[0] for f in features] # Pulls all HemHt values
+
+    all_bow = [f[1] for f in features] # Pulls all BowTieWd values
+
+    data_y_min = min(all_bow) # Minimum BowTieWd value
+    data_y_max = max(all_bow) # Maximum BowTieWd value
+
+    data_x_min = min(all_hem) # Minimum HemHt value
+    data_x_max = max(all_hem) # Maximum HemHt value
     
-    print(f"Found {len(decisions)} decision boundaries")
-    
-    # Get the actual data ranges for proper line placement
-    all_hem = [f[0] for f in features]
-    all_bow = [f[1] for f in features]
-    data_y_min = min(all_bow)
-    data_y_max = max(all_bow)
-    data_x_min = min(all_hem)
-    data_x_max = max(all_hem)
-    
-    # Add some padding to the data ranges
-    y_padding = (data_y_max - data_y_min) * 0.1
-    x_padding = (data_x_max - data_x_min) * 0.1
+    # Added some padding for better data visualiation
+    # Without utilzing the padding, data points will overlap the axis lines
+    y_padding = (data_y_max - data_y_min) * 0.1 # 10% padding for y-axis
+    x_padding = (data_x_max - data_x_min) * 0.1 # 10% padding for x-axis
+
     y_min = data_y_min - y_padding
     y_max = data_y_max + y_padding
     x_min = data_x_min - x_padding
@@ -106,38 +144,45 @@ def cascade_code_plot(features, labels, cascade_code):
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
     
-    # Plot only the FIRST decision boundary of each type
-    hem_decisions = [d for d in decisions if d[0] == 'HemHt']
-    bow_decisions = [d for d in decisions if d[0] == 'BowTieWd']
+
+    # Basically it's pulling every decision value in decisions list,
+    # checking if it's HemHt or BowTieWd and then assign d value 
+    # for either hem or bow decision list just for organizability 
+    # *_decisions = [decisions...]
+    hem_decisions = [d for d in decisions if d[0] == 'HemHt'] # All HemHt decisions
+    bow_decisions = [d for d in decisions if d[0] == 'BowTieWd'] # All BowTieWd decisions
     
-    if hem_decisions and bow_decisions:
-        hem_threshold = hem_decisions[0][1]  # First HemHt boundary
-        bow_threshold = bow_decisions[0][1]  # First BowTieWd boundary
-        
-        # Plot BowTieWd boundary (red horizontal line) - full width
-        plt.axhline(y=bow_threshold, color='red', linestyle='--', 
-                   alpha=0.8, label=f'BowTieWd < {bow_threshold:.2f}', linewidth=3)
-        
-        # Plot HemHt boundary (blue vertical line) - from bottom to red line
-        # Use the actual bottom of the plot (y_min) to ensure it touches the x-axis
-        plt.plot([hem_threshold, hem_threshold], [y_min, bow_threshold], 
-                color='blue', linestyle='--', alpha=0.8, 
-                label=f'HemHt < {hem_threshold:.2f}', linewidth=3)
-        
-        print(f"First HemHt boundary at: {hem_threshold}")
-        print(f"First BowTieWd boundary at: {bow_threshold}")
-        print(f"Blue line goes from y={y_min:.2f} to y={bow_threshold:.2f}")
+    if hem_decisions and bow_decisions: # If both decision boundaries are found in cascade
+
+        #Purpose of this is to pull the only first decision line
+        # hem_decisions = [('HemHt', threshold val),...]
+        # bow_decisions = [('BowTieWd', threshold val),...]
+        hem_threshold = hem_decisions[0][1] 
+        bow_threshold = bow_decisions[0][1]  
+
+        # Plot BowTieWd threshold
+        plt.axhline(y=bow_threshold, color='red', #Bow threshold represents y-axis
+                    linestyle='--', alpha=0.8, #dashed line style with 80% opacity
+                    label=f'BowTieWd < {bow_threshold:.2f}', # Represents label of BowTieWd 
+                    linewidth=3 #line width 
+                    )
+                
     
-    # Formatting
+        # Plot HemHt threshold    
+        # Purpose of this is to make hem threshold stop at the red line (bow tie)    
+        plt.plot([hem_threshold, hem_threshold], [y_min, bow_threshold], # (x1, y1), (x2, y2)
+                color='blue', linestyle='--', alpha=0.8, # Blue dashed line of 80% opacity
+                label=f'HemHt < {hem_threshold:.2f}', # Represents label of HemHt
+                linewidth=3 #line width
+                )
+    
+    # Plotting Format
     plt.xlabel('Hem Height (inches)')
     plt.ylabel('Bow Tie Width (inches)')
-    plt.title('Spy Classification Data with First Decision Boundaries\n(Black: Florin, Yellow: Guilder)')
+    plt.title('Florin vs Guilder Cascade Classification Tree')
     plt.legend()
-    plt.grid(True, alpha=0.3)
-    
-    # Set background to light gray for better contrast with yellow points
-    plt.gca().set_facecolor('#f0f0f0')
-    
+    plt.grid(True, alpha=0.3) # Adds grid
+
     # Save the plot
     plt.savefig('decision_boundaries.png', dpi=300, bbox_inches='tight')
 
