@@ -5,7 +5,7 @@
 import csv
 import matplotlib.pyplot as plt
 
-def plot_data_and_decisions(features, labels, cascade_code):
+def plot_data_and_decisions(features, labels, cascade_cascade_code):
     """
     Plot the data points and decision boundaries from the cascade
     """
@@ -30,8 +30,8 @@ def plot_data_and_decisions(features, labels, cascade_code):
     plt.scatter(florin_hem, florin_bow, c='blue', label='Florin', alpha=0.7, s=50)
     plt.scatter(guilder_hem, guilder_bow, c='red', label='Guilder', alpha=0.7, s=50)
     
-    # Extract decision boundaries from cascade code
-    lines = cascade_code.split('\n')
+    # Extract decision boundaries from cascade cascade_code
+    lines = cascade_cascade_code.split('\n')
     decisions = []
     
     for line in lines:
@@ -105,25 +105,49 @@ def extract_left_data(features, labels, feature_index, threshold):
 
     return left_features, left_labels
 
+"""
+Extracts the data points focusing on feature >= threshold.
+Function is used to get subset of right child node data
+after split. 
+
+This function is basically almost similar to node_analysis function.
+
+@params features: list of feature data of hem height and bow tie width
+@params labels: list of country labels from data set
+@params feature_index: index of feature to split on (0: HemHt, 1: BowTieWd)
+@params threshold: threshold value to split on
+@return right_features: list of feature data where feature >= threshold
+@return right_labels: list of country labels where feature >= threshold
+"""
 def extract_right_data(features, labels, feature_index, threshold):
-    """Extract data where feature >= threshold"""
-    right_features = []
-    right_labels = []
+
+    # Initializing empty lists of features and labels on right node
+    right_features = [] # Store feature vectors where feature >= threshold
+    right_labels = [] # Store labels where feature >= threshold
+
+    # Iterate through all samples to extract based on threshold
     for i in range(len(features)):
+
+        # Check if feature value is greater than or equal to threshold
+        # If that's the case, append to right node lists
         if features[i][feature_index] >= threshold:
-            right_features.append(features[i])
-            right_labels.append(labels[i])
+
+            right_features.append(features[i]) # Append feature vector to right vectors
+
+            right_labels.append(labels[i]) # Append label to right labels
+
+    # Return the extracted right node data
     return right_features, right_labels
 
 """
 Builds the cascade decision tree recursively to construct
-the classifier function code. Represents the skeleton
+the classifier function cascade_code. Represents the skeleton
 of the decision tree with fast decisions and remaining
 data for further splitting.
 @params features: list of feature data of hem height and bow tie width
 @params labels: list of country labels from data set
 @params depth: current depth of recursion for indentation
-@return code: string representation of the cascade decision tree
+@return cascade_code: string representation of the cascade decision tree
 """
 def build_cascade_tree(features, labels, depth=0):
 
@@ -137,56 +161,88 @@ def build_cascade_tree(features, labels, depth=0):
         indent = "    " * depth # Indentation based on depth
         return f'{indent}return "{majority_class}"  # Pure node: {purity:.1%} {majority_class}'
     
-    # Recursive Case: Find best feature and threshold to split data
-    best_feature, best_threshold, best_cost = find_best_split(features, labels)
+    # Recursive Case: Find best feature and threshold 
+    # Reminder: find_best_split returns (best_feature_idx_index, best_threshold, best_cost)
+    best_feature_idx, best_threshold, best_cost = find_best_split(features, labels)
     
+    # Feature names for readability
     feature_names = ["HemHt", "BowTieWd"]
 
-    left_analysis, right_analysis = test_split(features, labels, best_feature, best_threshold)
+    # Split data based on best feature and threshold
+    # Reminder: left_analysis is data where feature < threshold
+    # right_analysis is data where feature >= threshold
+    # Both of analysis values contain (total_count, florinian_count, guilderian_count, majority_class, purity)
+    left_analysis, right_analysis = test_split(features, labels, best_feature_idx, best_threshold)
 
-    if left_analysis[4] >= right_analysis[4]:
+    # Assign variables for easiy readability
 
-        fast_side = "left"
-        fast_class = left_analysis[3]
-        remaining_features, remaining_labels = extract_right_data(features, labels, best_feature, best_threshold)
+    left_purity = left_analysis[4]
+    right_purity = right_analysis[4]
+    # Determine which side of split will be fast decision
+    # If left node has higher purity, make it fast decision
+    # Reminder: node_analysis[4] = purity
+    # The higher purity is the faster it is to decide
+
+    if left_purity >= right_purity:
+
+        fast_side = "left" # Set left side as purer fast decision
+        left_majority_class = left_analysis[3]
+        fast_class = left_majority_class # Majority class of left node (node_analysis[3] = majority_class)
+
+        # Get the remaining data for right node for furter recursive processing
+        remaining_features, remaining_labels = extract_right_data(features, labels, best_feature_idx, best_threshold)
+
     else:
 
-        fast_side = "right"
-        fast_class = right_analysis[3]
-        remaining_features, remaining_labels = extract_left_data(features, labels, best_feature, best_threshold)
+        # If right node has higher purity, make it fast decision
+        fast_side = "right" # Set right side as purer fast decision
+        right_majority_class = right_analysis[3]
+        fast_class = right_majority_class # Majority class of left node (node_analysis[3] = majority_class)
+        
+        # Get the remaining data for left node for furter recursive processing
+        remaining_features, remaining_labels = extract_left_data(features, labels, best_feature_idx, best_threshold)
 
+    # Creat indentation based on depth
     indent = "    " * depth
     
-    #code = f'{indent}if {feature_names[best_feature]} < {best_threshold:.3f}:\n'
-
+    # Build the code string based on which side is the fast decision
     if fast_side == "left":
 
-        code = f'{indent}if {feature_names[best_feature]} < {best_threshold:.3f}:\n'
-        code += f'{indent}    return "{fast_class}"  # Fast decision\n'
-        code += f'{indent}else:\n'
-        code += build_cascade_tree(remaining_features, remaining_labels, depth + 1)
+        # Code string builder
+        # If 
+
+        # Reminder: Feature names = ["HemHt", "BowTieWd"]
+
+
+        cascade_code = f'{indent}if {feature_names[best_feature_idx]} < {best_threshold:.3f}:\n'
+
+        cascade_code += f'{indent}    return "{fast_class}"\n'
+
+        cascade_code += f'{indent}else:\n'
+
+        cascade_code += build_cascade_tree(remaining_features, remaining_labels, depth + 1)
 
     else:
 
-        code = f'{indent}if {feature_names[best_feature]} < {best_threshold:.3f}:\n'
-        code += build_cascade_tree(remaining_features, remaining_labels, depth + 1) + '\n'
-        code += f'{indent}else:\n'
-        code += f'{indent}    return "{fast_class}"  # Fast decision'
+        cascade_code = f'{indent}if {feature_names[best_feature_idx]} < {best_threshold:.3f}:\n'
+        cascade_code += build_cascade_tree(remaining_features, remaining_labels, depth + 1) + '\n'
+        cascade_code += f'{indent}else:\n'
+        cascade_code += f'{indent}    return "{fast_class}"  # Fast decision'
     
-    return code
+    return cascade_code
 
 """
 The data gets splitted based on feature index and threshold.
 Function is used to find the best index of the threshold.
 @params features: list of feature data of hem height and bow tie width
 @params labels: list of country labels from data set
-@returns: Tuple of (best_feature_index, best_threshold, best_cost)
+@returns: Tuple of (best_feature_idx_index, best_threshold, best_cost)
 """
 def find_best_split(features, labels):
 
     # Used to initlized variables to keep track of best split
     best_cost = -float('inf') # Initialize to negative infinity
-    best_feature_index = -1 # Initialize to invalid index to find real split
+    best_feature_idx_index = -1 # Initialize to invalid index to find real split
     best_threshold = -1 # Initialize to invalid threshold to find real split
     total_samples = len(features) # Total number of samples
 
@@ -222,11 +278,11 @@ def find_best_split(features, labels):
             if cost > best_cost:
 
                 best_cost = cost # Best cost updated
-                best_feature_index = feature_idx # Best feature updated (HemHt(0) or BowTieWd(1))
+                best_feature_idx_index = feature_idx # Best feature updated (HemHt(0) or BowTieWd(1))
                 best_threshold = threshold # Best threshold updated
 
     # Return parameters of best split found
-    return best_feature_index, best_threshold, best_cost
+    return best_feature_idx_index, best_threshold, best_cost
 
 """
 Function calculates the cost of a split based on left and right node analysis.
@@ -276,12 +332,11 @@ def test_split(features, labels, feature_index, threshold):
 
     # Get analysis for left and right nodes
     # Reminder: node_analysis returns total_count, florinian_count, guilderian_count, majority_class, purity
-    left_analysis = node_analysis(left_labels)
+    left_analysis = node_analysis(left_labels) 
     right_analysis = node_analysis(right_labels)
 
     # Return left and right analysis
     return left_analysis, right_analysis
-
 
 """
 Computes statistics of the data set coming from
@@ -349,20 +404,20 @@ def main():
     # Starts the cascade decision tree building process
     cascade_build = build_cascade_tree(features, labels) #Parameters used are features and labels lists
 
-    full_code = "def classify_spy(HemHt, BowTieWd):\n"
+    full_cascade_code = "def classify_spy(HemHt, BowTieWd):\n"
     for line in cascade_build.splitlines():
 
-    # Each line from cascade_code already has the proper relative indent;
+    # Each line from cascade_cascade_code already has the proper relative indent;
     # we add exactly 4 spaces so it's all inside classify_spy(...)
-        full_code += f"    {line}\n"
+        full_cascade_code += f"    {line}\n"
 
     with open("cascade_classifier.py", "w") as f:
-        f.write(full_code)
+        f.write(full_cascade_code)
     
     plot_data_and_decisions(features, labels, cascade_build)
 
 
-    exec(full_code, globals())  # Make the classify_spy function available
+    exec(full_cascade_code, globals())  # Make the classify_spy function available
     
     correct = 0
     total = len(features)

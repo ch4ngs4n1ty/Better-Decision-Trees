@@ -1,20 +1,20 @@
 def classify_spy(HemHt, BowTieWd):
     if BowTieWd < 5.510:
-        return "Guilder"  # Fast decision
+        return "Guilder"
     else:
         if BowTieWd < 5.595:
-            return "Guilder"  # Fast decision
+            return "Guilder"
         else:
             if BowTieWd < 5.620:
-                return "Guilder"  # Fast decision
+                return "Guilder"
             else:
                 if HemHt < 8.895:
                     if BowTieWd < 7.860:
-                        return "Guilder"  # Fast decision
+                        return "Guilder"
                     else:
                         if HemHt < 6.825:
                             if BowTieWd < 9.830:
-                                return "Guilder"  # Fast decision
+                                return "Guilder"
                             else:
                                 if BowTieWd < 12.075:
                                     if HemHt < 5.200:
@@ -22,10 +22,10 @@ def classify_spy(HemHt, BowTieWd):
                                             if HemHt < 4.640:
                                                 if HemHt < 4.540:
                                                     if HemHt < 4.360:
-                                                        return "Guilder"  # Fast decision
+                                                        return "Guilder"
                                                     else:
                                                         if HemHt < 4.470:
-                                                            return "Florin"  # Fast decision
+                                                            return "Florin"
                                                         else:
                                                             return "Guilder"  # Pure node: 100.0% Guilder
                                                 else:
