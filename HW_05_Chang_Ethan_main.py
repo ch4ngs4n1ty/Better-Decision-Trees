@@ -184,7 +184,7 @@ def cascade_code_plot(features, labels, cascade_code):
     plt.grid(True, alpha=0.3) # Adds grid
 
     # Save the plot
-    plt.savefig('decision_boundaries.png', dpi=300, bbox_inches='tight')
+    plt.savefig('cascade_plot.png', dpi=300, bbox_inches='tight')
 
     plt.close()
 
@@ -539,7 +539,10 @@ def main():
     # Starts the cascade decision tree building process
     cascade_build = build_cascade_tree(features, labels) #Parameters used are features and labels lists
 
-    full_cascade_code = "def classify_spy(HemHt, BowTieWd):\n"
+    # Initialize the cascade code by defining the function
+
+    full_cascade_code = "def classify(HemHt, BowTieWd):\n"
+
     for line in cascade_build.splitlines():
 
     # Each line from cascade_cascade_code already has the proper relative indent;
@@ -549,24 +552,33 @@ def main():
     with open("cascade_classifier.py", "w") as f:
         f.write(full_cascade_code)
     
+    # Generates the plot of the cascade code
     cascade_code_plot(features, labels, cascade_build)
 
+    exec(full_cascade_code, globals())  # Make the classify function available by pulling the file
+    
+    correct = 0 # Count of correct classified data points
 
-    exec(full_cascade_code, globals())  # Make the classify_spy function available
+    total = len(features) # Total number of data samples
     
-    correct = 0
-    total = len(features)
-    
+    # Iterate each data point
     for i in range(total):
-        hemht = features[i][0]
+
+        # Recall that features [(hemht, bowtie)...]
+        hemht = features[i][0] 
         bowtie = features[i][1]
-        true_label = labels[i]
-        predicted_label = classify_spy(hemht, bowtie)
+        label = labels[i]
+
+        # Calls the function that's being classified
+        label_prediction = classify(hemht, bowtie)
         
-        if predicted_label == true_label:
-            correct += 1
+        if label_prediction == label:
+
+            correct += 1 # Increments everytime label matches
     
-    accuracy = correct / total
+    # Calculates the overall accuracy 
+    accuracy = correct / total 
+
     print(f"Classifier Accuracy: {accuracy:.1%}")
 
 

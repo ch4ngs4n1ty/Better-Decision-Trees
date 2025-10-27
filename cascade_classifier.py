@@ -1,4 +1,4 @@
-def classify_spy(HemHt, BowTieWd):
+def classify(HemHt, BowTieWd):
     if HemHt < 5.510:
         return "Guilder"
     else:
