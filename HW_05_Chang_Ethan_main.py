@@ -91,18 +91,38 @@ def plot_data_and_decisions(features, labels, cascade_cascade_code):
 
     print("Plot saved as 'decision_boundaries.png'")
     
-def extract_left_data(features, labels, feature_index, threshold):
-    """Extract data where feature < threshold"""
-    left_features = []
-    left_labels = []
+"""
+Extracts the data points focusing on feature < threshold.
+Function is used to get subset of left child node data
+after split. 
 
+This function is basically almost similar to node_analysis function.
+
+@params features: list of feature data of hem height and bow tie width
+@params labels: list of country labels from data set
+@params feature_index: index of feature to split on (0: HemHt, 1: BowTieWd)
+@params threshold: threshold value to split on
+@return left_features: list of feature data where feature < threshold
+@return left_labels: list of country labels where feature < threshold
+"""
+def left_node_extraction(features, labels, feature_index, threshold):
+
+    # Initializing empty lists of features and labels on left node
+    left_features = [] # Store feature vectors where feature < threshold
+    left_labels = [] # Store labels where feature < threshold
+
+    # Iterate through all samples to extract based on threshold
     for i in range(len(features)):
 
+        # Check if feature value is less than to threshold
+        # If that's the case, append to left node lists
         if features[i][feature_index] < threshold:
 
-            left_features.append(features[i])
-            left_labels.append(labels[i])
+            left_features.append(features[i]) # Append feature vector to left vectors
 
+            left_labels.append(labels[i]) # Append label to left labels
+
+    # Return the extracted left node data
     return left_features, left_labels
 
 """
@@ -119,7 +139,7 @@ This function is basically almost similar to node_analysis function.
 @return right_features: list of feature data where feature >= threshold
 @return right_labels: list of country labels where feature >= threshold
 """
-def extract_right_data(features, labels, feature_index, threshold):
+def right_node_extraction(features, labels, feature_index, threshold):
 
     # Initializing empty lists of features and labels on right node
     right_features = [] # Store feature vectors where feature >= threshold
@@ -182,7 +202,6 @@ def build_cascade_tree(features, labels, depth=0):
     # If left node has higher purity, make it fast decision
     # Reminder: node_analysis[4] = purity
     # The higher purity is the faster it is to decide
-
     if left_purity >= right_purity:
 
         fast_side = "left" # Set left side as purer fast decision
@@ -190,7 +209,7 @@ def build_cascade_tree(features, labels, depth=0):
         fast_class = left_majority_class # Majority class of left node (node_analysis[3] = majority_class)
 
         # Get the remaining data for right node for furter recursive processing
-        remaining_features, remaining_labels = extract_right_data(features, labels, best_feature_idx, best_threshold)
+        remaining_features, remaining_labels = right_node_extraction(features, labels, best_feature_idx, best_threshold)
 
     else:
 
@@ -200,7 +219,7 @@ def build_cascade_tree(features, labels, depth=0):
         fast_class = right_majority_class # Majority class of left node (node_analysis[3] = majority_class)
         
         # Get the remaining data for left node for furter recursive processing
-        remaining_features, remaining_labels = extract_left_data(features, labels, best_feature_idx, best_threshold)
+        remaining_features, remaining_labels = left_node_extraction(features, labels, best_feature_idx, best_threshold)
 
     # Creat indentation based on depth
     indent = "    " * depth
@@ -209,26 +228,43 @@ def build_cascade_tree(features, labels, depth=0):
     if fast_side == "left":
 
         # Code string builder
-        # If 
+        # if feature < threshold:
+        #     return "fast_class"
+        # else:
+        #     (recursive call to build_cascade_tree for remaining data)
 
         # Reminder: Feature names = ["HemHt", "BowTieWd"]
+        # We use best_feature_idx to get the feature name which is either 0 or 1
 
+        # Assigned best feature name for readability
+        best_feature = feature_names[best_feature_idx]
 
-        cascade_code = f'{indent}if {feature_names[best_feature_idx]} < {best_threshold:.3f}:\n'
-
+        cascade_code = f'{indent}if {best_feature} < {best_threshold:.3f}:\n'
         cascade_code += f'{indent}    return "{fast_class}"\n'
-
         cascade_code += f'{indent}else:\n'
 
+        # Recursive call to build cascade tree for remaining data on right node
+        # Recall that we used right extract function to get remaining data
         cascade_code += build_cascade_tree(remaining_features, remaining_labels, depth + 1)
 
     else:
 
+        # Code string builder
+        # if feature < threshold:
+        #     (recursive call to build_cascade_tree for remaining data)
+        # else:
+        #     return "fast_class"
+
         cascade_code = f'{indent}if {feature_names[best_feature_idx]} < {best_threshold:.3f}:\n'
+
+        # Recursive call to build cascade tree for remaining data on right node
+        # Recall that we used right extract function to get remaining data
         cascade_code += build_cascade_tree(remaining_features, remaining_labels, depth + 1) + '\n'
+        
         cascade_code += f'{indent}else:\n'
-        cascade_code += f'{indent}    return "{fast_class}"  # Fast decision'
+        cascade_code += f'{indent}    return "{fast_class}"'
     
+    # Returns an entire constructed cascade decision tree code string
     return cascade_code
 
 """
@@ -398,7 +434,7 @@ def main():
         bow_tie_wd = float(row[1]) # Each row bow tie width data (float value)
         country = row[2] # Each row country (label) data
 
-        features.append([hem_ht, bow_tie_wd]) # Append hem height and bow tie width to features list as tuple
+        features.append([bow_tie_wd, hem_ht]) # Append hem height and bow tie width to features list as tuple
         labels.append(country) # Append country to labels list
 
     # Starts the cascade decision tree building process
