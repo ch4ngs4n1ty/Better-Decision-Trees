@@ -544,7 +544,7 @@ def main():
         bow_tie_wd = float(row[1]) # Each row bow tie width data (float value)
         country = row[2] # Each row country (label) data
 
-        features.append([bow_tie_wd, hem_ht]) # Append hem height and bow tie width to features list as tuple
+        features.append([hem_ht, bow_tie_wd]) # Append hem height and bow tie width to features list as tuple
         labels.append(country) # Append country to labels list
 
     # Starts the cascade decision tree building process
